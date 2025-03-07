@@ -80,3 +80,10 @@ async def build(name: str, live: str | None = None) -> Response:
     if live is not None and build.status == BuildStatus.started:
         return RedirectResponse(url=build.deploy_link)
     return RedirectResponse(url=f"/webui/build.html?name={name}")
+
+
+@router.get("/rebuild", response_class=RedirectResponse)
+async def rebuild(repo: str, pr: str) -> Response:
+    return RedirectResponse(
+        url=f"/webui/rebuild.html?repo={repo}&pr={pr}"
+    )

@@ -178,7 +178,7 @@ class Build(BaseModel):
 
     @classmethod
     async def _deploy(
-        cls, commit_info: CommitInfo, name: str, slug: str, job_kind: k8s.DeploymentMode
+        cls, commit_info: CommitInfo, name: str, slug: str, job_kind: k8s.DeploymentMode, target_url: str = None
     ) -> None:
         """Internal method to prepare for and handle a k8s.deploy()."""
         build_settings = settings.get_build_settings(
@@ -199,7 +199,7 @@ class Build(BaseModel):
             commit_info.repo,
             commit_info.git_commit,
             GitHubStatusState.pending,
-            target_url=None,
+            target_url=target_url,
         )
 
     @classmethod
@@ -270,8 +270,14 @@ class Build(BaseModel):
         # Start cleanup job. on_cleanup_{started,succeeded,failed} callbacks will follow
         # from job events.
         _logger.info(f"Deploying cleanup job for {self}.")
+
+        target_url = None
+        if self.commit_info.pr:
+            target_url = f"{settings.base_url}/rebuild?repo={self.commit_info.repo}&pr={self.commit_info.pr}"
+
         await self._deploy(
-            self.commit_info, self.name, self.slug, job_kind=k8s.DeploymentMode.cleanup
+            self.commit_info, self.name, self.slug, job_kind=k8s.DeploymentMode.cleanup,
+            target_url=target_url
         )
 
     async def on_initialize_started(self) -> None:

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Runboat build</title>
+        <style>
+            body {
+                font-family: Arial, Helvetica, sans-serif;
+            }
+            #footer {
+                color: gray;
+                font-size: small;
+            }
+        </style>
+    </head>
+    <body>
+        <runboat-rebuild id="rebuild"></runboat-rebuild>
+        <p id="repolink"></p>
+        <div id="footer">
+            {{ footer_html }}
+            {{ additional_footer_html }}
+        </div>
+        <script type="module">
+            import {RunboatRebuildElement} from './runboat-build-element.js'
+            customElements.define('runboat-rebuild', RunboatRebuildElement);
+
+            const buildElement = document.getElementById("rebuild");
+
+            var evtSource = null;
+            const paramSearch = new URLSearchParams(window.location.search);
+            const commitInfo = {
+                repo: paramSearch.get("repo"),
+                pr: paramSearch.get("pr")
+            };
+            buildElement.commitInfo = commitInfo;
+
+            function onopen(event) {
+                console.log("connected");
+            }
+
+            function onmessage(event) {
+                var oEvent = JSON.parse(event.data);
+
+                if (oEvent.event == "upd" && oEvent.build.webui_link) {
+                    location.href = oEvent.build.webui_link;
+                }
+            }
+
+            function onerror(event) {
+                evtSource.close();
+                console.log("error, will attempt to reconnect");
+                setTimeout(connect, 10000);
+            }
+
+            function connect() {
+                console.log("connecting...")
+                evtSource = new EventSource(`/api/v1/build-events?repo=${commitInfo.repo}&pr=${commitInfo.pr}`);
+                evtSource.onopen = onopen;
+                evtSource.onmessage = onmessage;
+                evtSource.onerror = onerror;
+            }
+
+            connect();
+        </script>
+    </body>
+</html>

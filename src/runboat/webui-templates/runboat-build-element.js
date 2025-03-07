@@ -105,4 +105,28 @@ class RunboatBuildElement extends LitElement {
     }
 }
 
-export {RunboatBuildElement};
+class RunboatRebuildElement extends LitElement {
+    constructor() {
+        super();
+        this.commitInfo = {};
+        this.clicked = false;
+    }
+
+    render() {
+        return html`
+            <div>
+                <button @click="${this.rebuildHandler}" ?disabled="${this.clicked}">Trigger build</button>
+            </div>
+        `;
+    }
+
+    async rebuildHandler(e) {
+        this.clicked = true;
+        await fetch(`/api/v1/builds/trigger/pr?repo=${this.commitInfo.repo}&pr=${this.commitInfo.pr}`, {method: "POST"});
+    }
+}
+
+
+export {
+    RunboatBuildElement, RunboatRebuildElement
+};
