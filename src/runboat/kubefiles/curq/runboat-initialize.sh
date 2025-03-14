@@ -22,3 +22,5 @@ dropdb --if-exists ${PGDATABASE}
 export MODULES=$(manifestoo -d /odoo/custom list | grep _install | paste -sd,)
 
 /usr/local/bin/entrypoint.sh
+
+touch /odoo/data/initialized

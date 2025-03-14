@@ -2,7 +2,7 @@
 
 set -ex
 
-if [ ! -f /mnt/data/initialized ] ; then
+if [ ! -f /odoo/data/initialized ] ; then
     echo "Build is not initialized. Cannot start."
     exit 1
 fi

@@ -18,7 +18,7 @@ spec:
             - name: runboat-scripts
               mountPath: /runboat
             - name: data
-              mountPath: /mnt/data
+              mountPath: /odoo/data
           envFrom:
             - secretRef:
                 name: odoosecretenv
