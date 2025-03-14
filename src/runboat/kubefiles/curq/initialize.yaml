@@ -18,13 +18,13 @@ spec:
             - name: runboat-scripts
               mountPath: /runboat
             - name: data
-              mountPath: /odoo/data
+              mountPath: /mnt/data
           envFrom:
             - secretRef:
                 name: odoosecretenv
             - configMapRef:
                 name: odooenv
-          args: ["bash", "/runboat/runboat-initialize.sh"]
+          args: ["/runboat/runboat-initialize.sh"]
           resources:
             limits:
               cpu: 1000m
@@ -42,4 +42,4 @@ spec:
       restartPolicy: Never
   completions: 1
   backoffLimit: 0
-  activeDeadlineSeconds: 1200
+  activeDeadlineSeconds: 7200
