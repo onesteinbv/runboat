@@ -21,7 +21,7 @@ async def _github_request(method: str, url: str, json: Any = None) -> Any:
             headers["Authorization"] = f"token {settings.github_token}"
         response = await client.request(method, full_url, headers=headers, json=json)
         if response.status_code == 404:
-            raise NotFoundOnGitHub(f"GitHub URL not found: {full_url}.")
+            raise NotFoundOnGitHub(f"GitHub URL not found: {full_url} ({method}).")
         response.raise_for_status()
         return response.json()
 
