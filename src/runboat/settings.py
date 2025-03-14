@@ -84,6 +84,8 @@ class Settings(BaseSettings):
     additional_footer_html: str = ""
     # Disable posting of statuses to GitHub commits
     disable_commit_statuses: bool = False
+    # PR image tag format for {ref} in builds defaults to pr-%s similar to https://github.com/marketplace/actions/docker-metadata-action
+    pr_image_tag_format: str = "pr-%s"
 
     def get_build_settings(self, repo: str, target_branch: str) -> list[BuildSettings]:
         for repo_settings in self.repos:

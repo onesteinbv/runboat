@@ -31,6 +31,12 @@ def _split_image_name_tag(image: str) -> tuple[str, str]:
     return (img, tag or "latest")
 
 
+def _format_tag(tag: str, commit_info: CommitInfo) -> str:
+    if commit_info.pr is None:
+        return tag.format(ref=commit_info.target_branch)
+    return tag.format(ref=settings.pr_image_tag_format % commit_info.pr)
+
+
 @sync_to_async
 def load_kube_config() -> None:
     if "KUBECONFIG" in os.environ:
@@ -162,6 +168,7 @@ def make_deployment_vars(
     build_settings: BuildSettings,
 ) -> DeploymentVars:
     image_name, image_tag = _split_image_name_tag(build_settings.image)
+    image_tag = _format_tag(image_tag, commit_info)
     return DeploymentVars(
         mode=mode,
         namespace=settings.build_namespace,
