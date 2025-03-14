@@ -43,7 +43,8 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           tags: |
-            ghcr.io/${{ github.repository }}:latest
+            ghcr.io/${{ github.repository }}:latest,
+            ghcr.io/${{ github.repository }}:${{ github.sha }}
           labels: |
             org.opencontainers.image.source=${{ github.event.repository.html_url }}
           cache-from: type=registry,ref=ghcr.io/${{ github.repository }}:latest
