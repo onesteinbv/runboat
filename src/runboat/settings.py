@@ -30,6 +30,7 @@ class RepoSettings(BaseModel):
     repo: str  # regex
     branch: str  # regex
     builds: list[BuildSettings]
+    need_check: str | None = None
 
     @field_validator("builds")
     def validate_builds(cls, v: list[BuildSettings]) -> list[BuildSettings]:
