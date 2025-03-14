@@ -7,17 +7,17 @@ from runboat.settings import BuildSettings, settings
 
 
 def test_get_build_settings() -> None:
-    assert settings.get_build_settings("OCA/mis-builder", "15.0") == [
+    assert settings.get_build_settings("OCA/mis-builder", "15.0", None) == [
         BuildSettings(image="ghcr.io/oca/oca-ci/py3.8-odoo15.0:latest")
     ]
     with pytest.raises(RepoOrBranchNotSupported):
-        settings.get_build_settings("acsone/mis-builder", "15.0")
+        settings.get_build_settings("acsone/mis-builder", "15.0", None)
     with pytest.raises(RepoOrBranchNotSupported):
-        assert not settings.get_build_settings("OCA/mis-builder", "15.0-stuff")
-    assert settings.get_build_settings("OCA/mis-builder", "15.0") == [
+        assert not settings.get_build_settings("OCA/mis-builder", "15.0-stuff", None)
+    assert settings.get_build_settings("OCA/mis-builder", "15.0", None) == [
         BuildSettings(image="ghcr.io/oca/oca-ci/py3.8-odoo15.0:latest")
     ]
-    assert settings.get_build_settings("OCA/mis-builder", "16.0") == [
+    assert settings.get_build_settings("OCA/mis-builder", "16.0", None) == [
         BuildSettings(
             image="ghcr.io/oca/oca-ci/py3.10-odoo16.0:latest",
             kubefiles_path=Path("/tmp"),
