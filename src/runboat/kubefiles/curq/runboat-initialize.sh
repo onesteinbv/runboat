@@ -3,7 +3,7 @@
 set -ex
 
 # Compatibility with oca-ci
-export MODE="Init"
+export MODE="InstallOnly"
 export DB_HOST=$PGHOST
 export DB_PORT=$PGPORT
 export DB_USER=$PGUSER
@@ -11,6 +11,7 @@ export DB_PASSWORD=$PGPASSWORD
 export WORKERS="0"
 export DB_NAME=$PGDATABASE
 export DB_FILTER="^$PGDATABASE$"
+export DOCKER="false"
 
 wait_for_postgres.sh
 

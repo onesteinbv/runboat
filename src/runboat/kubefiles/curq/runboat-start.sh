@@ -17,6 +17,7 @@ export MODULES=$MODULES
 export WORKERS="0"
 export DB_NAME=$PGDATABASE
 export DB_FILTER=^$PGDATABASE$
+export DOCKER="false"
 
 wait_for_postgres.sh
 
