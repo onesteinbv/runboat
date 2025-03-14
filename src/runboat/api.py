@@ -116,9 +116,10 @@ async def trigger_branch(repo: str, branch: str) -> None:
     "/builds/trigger/pr",
     dependencies=[Depends(authenticated)],
 )
-async def trigger_pull(repo: str, pr: int) -> None:
+async def trigger_pull(repo: str, pr: int, check_run: str | None = None) -> None:
     """Trigger build for a pull request."""
     commit_info = await github.get_pull_info(repo, pr)
+    commit_info.check_run = check_run
     await controller.deploy_commit(commit_info)
 
 

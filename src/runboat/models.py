@@ -83,6 +83,8 @@ class Build(BaseModel):
                 target_branch=deployment.metadata.annotations["runboat/target-branch"],
                 pr=deployment.metadata.annotations.get("runboat/pr") or None,
                 git_commit=deployment.metadata.annotations["runboat/git-commit"],
+                check_run=deployment.metadata.annotations.get("runboat/check-run")
+                or None,
             ),
             init_status=deployment.metadata.annotations["runboat/init-status"],
             status=cls._status_from_deployment(deployment),
@@ -178,11 +180,16 @@ class Build(BaseModel):
 
     @classmethod
     async def _deploy(
-        cls, commit_info: CommitInfo, name: str, slug: str, job_kind: k8s.DeploymentMode, target_url: str = None
+        cls,
+        commit_info: CommitInfo,
+        name: str,
+        slug: str,
+        job_kind: k8s.DeploymentMode,
+        target_url: str | None = None,
     ) -> None:
         """Internal method to prepare for and handle a k8s.deploy()."""
         build_settings = settings.get_build_settings(
-            commit_info.repo, commit_info.target_branch
+            commit_info.repo, commit_info.target_branch, commit_info.check_run
         )[0]
         kubefiles_path = (
             build_settings.kubefiles_path or settings.build_default_kubefiles_path
@@ -273,11 +280,18 @@ class Build(BaseModel):
 
         target_url = None
         if self.commit_info.pr:
-            target_url = f"{settings.base_url}/rebuild?repo={self.commit_info.repo}&pr={self.commit_info.pr}"
+            target_url = (
+                f"{settings.base_url}/rebuild"
+                f"?repo={self.commit_info.repo}"
+                f"&pr={self.commit_info.pr}"
+            )
 
         await self._deploy(
-            self.commit_info, self.name, self.slug, job_kind=k8s.DeploymentMode.cleanup,
-            target_url=target_url
+            self.commit_info,
+            self.name,
+            self.slug,
+            job_kind=k8s.DeploymentMode.cleanup,
+            target_url=target_url,
         )
 
     async def on_initialize_started(self) -> None:

@@ -88,3 +88,34 @@ async def receive_payload(
                 git_commit=payload["after"],
             ),
         )
+    elif x_github_event == "check_run":
+        repo = payload["repository"]["full_name"]
+        prs = payload["check_run"].get("pull_requests", [])
+        check_run = payload["check_run"]["name"]
+        if payload["action"] != "completed":
+            return
+        for pr in prs:
+            target_branch = pr["base"]["ref"]
+
+            if not settings.is_repo_and_branch_supported(
+                repo, target_branch, check_run
+            ):
+                _logger.debug(
+                    "Ignoring %s payload for unsupported repo %s or target branch %s",
+                    x_github_event,
+                    repo,
+                    target_branch,
+                )
+                continue
+
+            if payload["check_run"]["conclusion"] == "success":
+                background_tasks.add_task(
+                    controller.deploy_commit,
+                    CommitInfo(
+                        repo=repo,
+                        target_branch=target_branch,
+                        pr=pr["number"],
+                        check_run=check_run,
+                        git_commit=pr["head"]["sha"],
+                    ),
+                )

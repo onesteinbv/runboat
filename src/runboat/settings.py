@@ -30,7 +30,7 @@ class RepoSettings(BaseModel):
     repo: str  # regex
     branch: str  # regex
     builds: list[BuildSettings]
-    need_check: str | None = None
+    check_run: str | None = None
 
     @field_validator("builds")
     def validate_builds(cls, v: list[BuildSettings]) -> list[BuildSettings]:
@@ -88,20 +88,27 @@ class Settings(BaseSettings):
     # PR image tag format for {ref} in builds defaults to pr-%s similar to https://github.com/marketplace/actions/docker-metadata-action
     pr_image_tag_format: str = "pr-%s"
 
-    def get_build_settings(self, repo: str, target_branch: str) -> list[BuildSettings]:
+    def get_build_settings(
+        self, repo: str, target_branch: str, check_run: str | None
+    ) -> list[BuildSettings]:
         for repo_settings in self.repos:
             if not re.match(repo_settings.repo, repo, re.IGNORECASE):
                 continue
             if not re.match(repo_settings.branch, target_branch):
                 continue
+            if check_run != repo_settings.check_run:
+                continue
+
             return repo_settings.builds
         raise RepoOrBranchNotSupported(
             f"Branch {target_branch} of {repo} not supported."
         )
 
-    def is_repo_and_branch_supported(self, repo: str, target_branch: str) -> bool:
+    def is_repo_and_branch_supported(
+        self, repo: str, target_branch: str, check_run: str | None = None
+    ) -> bool:
         try:
-            self.get_build_settings(repo, target_branch)
+            self.get_build_settings(repo, target_branch, check_run)
         except RepoOrBranchNotSupported:
             return False
         else:

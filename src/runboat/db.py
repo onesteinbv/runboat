@@ -41,7 +41,7 @@ class BuildsDb:
 
     @classmethod
     def _build_from_row(cls, row: "sqlite3.Row") -> Build:
-        commit_info_fields = {"repo", "target_branch", "pr", "git_commit"}
+        commit_info_fields = {"repo", "target_branch", "pr", "git_commit", "check_run"}
         commit_info = CommitInfo(**{k: row[k] for k in commit_info_fields})
         return Build(
             commit_info=commit_info,
@@ -58,6 +58,7 @@ class BuildsDb:
             "    repo TEXT NOT NULL, "
             "    target_branch TEXT NOT NULL, "
             "    pr INTEGER, "
+            "    check_run TEXT, "
             "    git_commit TEXT NOT NULL, "
             "    desired_replicas INTEGER NOT NULL,"
             "    status TEXT NOT NULL, "
@@ -116,6 +117,7 @@ class BuildsDb:
                 "    repo,"
                 "    target_branch,"
                 "    pr,"
+                "    check_run,"
                 "    git_commit,"
                 "    desired_replicas,"
                 "    status,"
@@ -123,13 +125,14 @@ class BuildsDb:
                 "    last_scaled, "
                 "    created"
                 ") "
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 (
                     build.name,
                     build.deployment_name,
                     build.commit_info.repo,
                     build.commit_info.target_branch,
                     build.commit_info.pr,
+                    build.commit_info.check_run,
                     build.commit_info.git_commit,
                     build.desired_replicas,
                     build.status,
@@ -236,6 +239,7 @@ class BuildsDb:
         target_branch: str | None = None,
         branch: str | None = None,
         pr: int | None = None,
+        check_run: str | None = None,
         name: str | None = None,
         status: BuildStatus | None = None,
         sort: SortOrder = SortOrder.desc,
@@ -256,6 +260,9 @@ class BuildsDb:
         if pr is not None:
             where.append("pr=?")
             params.append(pr)
+        if check_run is not None:
+            where.append("check_run=?")
+            params.append(check_run)
         if name:
             where.append("name=?")
             params.append(name)
