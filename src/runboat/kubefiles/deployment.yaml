@@ -24,6 +24,7 @@ spec:
       containers:
         - name: odoo
           image: odoo
+          imagePullPolicy: Always
           volumeMounts:
             - name: runboat-scripts
               mountPath: /runboat
