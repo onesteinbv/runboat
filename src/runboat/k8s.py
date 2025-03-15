@@ -33,7 +33,7 @@ def _split_image_name_tag(image: str) -> tuple[str, str]:
 
 def _format_tag(tag: str, commit_info: CommitInfo) -> str:
     if commit_info.pr is None:
-        return tag.format(ref=commit_info.target_branch)
+        return tag.format(ref=commit_info.git_commit)
     return tag.format(ref=settings.pr_image_tag_format % commit_info.pr)
 
 
