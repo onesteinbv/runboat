@@ -29,11 +29,7 @@ def _verify_github_signature(
     return True
 
 
-def handle_check_run(
-    background_tasks: BackgroundTasks,
-    payload: typing.Any,
-    x_github_event: str,
-) -> None:
+def handle_check_run(background_tasks: BackgroundTasks, payload: typing.Any) -> None:
     repo = payload["repository"]["full_name"]
     prs = payload["check_run"].get("pull_requests", [])
     check_run = payload["check_run"]["name"]
@@ -48,8 +44,8 @@ def handle_check_run(
 
         if not settings.is_repo_and_branch_supported(repo, target_branch, check_run):
             _logger.debug(
-                "Ignoring %s payload for unsupported repo %s or target branch %s",
-                x_github_event,
+                "Ignoring check_run payload for unsupported "
+                "repo %s or target branch %s",
                 repo,
                 target_branch,
             )
@@ -72,8 +68,8 @@ def handle_check_run(
             return
         if not settings.is_repo_and_branch_supported(repo, target_branch, check_run):
             _logger.debug(
-                "Ignoring %s payload for unsupported repo %s or target branch %s",
-                x_github_event,
+                "Ignoring check_run payload for unsupported "
+                "repo %s or target branch %s",
                 repo,
                 target_branch,
             )
@@ -151,4 +147,4 @@ async def receive_payload(
             ),
         )
     elif x_github_event == "check_run":
-        handle_check_run(background_tasks, payload, x_github_event)
+        handle_check_run(background_tasks, payload)
