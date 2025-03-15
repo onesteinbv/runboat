@@ -102,7 +102,11 @@ async def receive_payload(
     if x_github_event == "pull_request":
         repo = payload["repository"]["full_name"]
         target_branch = payload["pull_request"]["base"]["ref"]
-        if not settings.is_repo_and_branch_supported(repo, target_branch):
+        closed_action = payload["action"] in ("closed",)
+        open_action = payload["action"] in ("opened", "synchronize")
+        if not settings.is_repo_and_branch_supported(
+            repo, target_branch, None, strict_check_run=open_action
+        ):
             _logger.debug(
                 "Ignoring %s payload for unsupported repo %s or target branch %s",
                 x_github_event,
@@ -110,7 +114,7 @@ async def receive_payload(
                 target_branch,
             )
             return
-        if payload["action"] in ("opened", "synchronize"):
+        if open_action:
             background_tasks.add_task(
                 controller.deploy_commit,
                 CommitInfo(
@@ -120,7 +124,7 @@ async def receive_payload(
                     git_commit=payload["pull_request"]["head"]["sha"],
                 ),
             )
-        elif payload["action"] in ("closed",):
+        elif closed_action:
             background_tasks.add_task(
                 controller.undeploy_builds,
                 repo=repo,

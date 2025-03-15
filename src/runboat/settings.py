@@ -89,14 +89,18 @@ class Settings(BaseSettings):
     pr_image_tag_format: str = "pr-%s"
 
     def get_build_settings(
-        self, repo: str, target_branch: str, check_run: str | None
+        self,
+        repo: str,
+        target_branch: str,
+        check_run: str | None,
+        strict_check_run: bool,
     ) -> list[BuildSettings]:
         for repo_settings in self.repos:
             if not re.match(repo_settings.repo, repo, re.IGNORECASE):
                 continue
             if not re.match(repo_settings.branch, target_branch):
                 continue
-            if check_run != repo_settings.check_run:
+            if strict_check_run and check_run != repo_settings.check_run:
                 continue
 
             return repo_settings.builds
@@ -105,10 +109,14 @@ class Settings(BaseSettings):
         )
 
     def is_repo_and_branch_supported(
-        self, repo: str, target_branch: str, check_run: str | None = None
+        self,
+        repo: str,
+        target_branch: str,
+        check_run: str | None = None,
+        strict_check_run: bool = True,
     ) -> bool:
         try:
-            self.get_build_settings(repo, target_branch, check_run)
+            self.get_build_settings(repo, target_branch, check_run, strict_check_run)
         except RepoOrBranchNotSupported:
             return False
         else:
