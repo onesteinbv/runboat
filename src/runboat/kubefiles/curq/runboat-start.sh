@@ -21,4 +21,4 @@ export DOCKER="false"
 
 wait_for_postgres.sh
 
-/usr/local/bin/entrypoint.sh
+/usr/local/bin/entrypoint.sh odoo
