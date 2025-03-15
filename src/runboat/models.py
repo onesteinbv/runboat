@@ -189,7 +189,7 @@ class Build(BaseModel):
     ) -> None:
         """Internal method to prepare for and handle a k8s.deploy()."""
         build_settings = settings.get_build_settings(
-            commit_info.repo, commit_info.target_branch, commit_info.check_run
+            commit_info.repo, commit_info.target_branch, commit_info.check_run, True
         )[0]
         kubefiles_path = (
             build_settings.kubefiles_path or settings.build_default_kubefiles_path
