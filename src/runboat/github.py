@@ -89,6 +89,18 @@ async def notify_status(
         )
 
 
-async def dispatch_workflow(repo: str) -> None:
-    # todo
-    return
+async def dispatch_workflow(
+    repo: str, workflow_id: str, ref: str, pr: str | None
+) -> None:
+    inputs = {"pr": pr}
+    try:
+        await _github_request(
+            "POST",
+            f"/repos/{repo}/actions/workflows/{workflow_id}/dispatches",
+            json={"ref": ref, "inputs": inputs},
+        )
+    except httpx.HTTPStatusError as e:
+        _logger.error(
+            f"Failed to dispatch workflow (code {e.response.status_code}):\n"
+            f"{e.response.text}"
+        )

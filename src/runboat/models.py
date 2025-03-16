@@ -329,8 +329,8 @@ class Build(BaseModel):
                 GitHubStatusState.success,
                 target_url=self.live_link,
             )
-        # Dispatch Github workflows
-        # todo
+            # Dispatch Github workflows
+            # todo
 
     async def on_initialize_failed(self) -> None:
         if self.init_status == BuildInitStatus.failed:
