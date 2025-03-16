@@ -1,6 +1,6 @@
 set -e
 # Login into ghcr.io
-echo $DOCKER_PASSWORD | docker login ghcr.io --username $DOCKER_USER --password-stdin
+echo $GHCR_PASSWORD | docker login ghcr.io --username $GHCR_USER --password-stdin
 
 # Enable explicit execution
 set -x
