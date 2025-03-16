@@ -1,6 +1,6 @@
 import re
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Any
 
 from pydantic import BaseModel, BeforeValidator, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -90,7 +90,7 @@ class Settings(BaseSettings):
     disable_commit_statuses: bool = False
 
     def get_build_settings(
-        self, repo: str, target_branch: str, **kwargs
+        self, repo: str, target_branch: str, **kwargs: Any
     ) -> list[BuildSettings]:
         for repo_settings in self.repos:
             if not re.match(repo_settings.repo, repo, re.IGNORECASE):
@@ -110,7 +110,7 @@ class Settings(BaseSettings):
         )
 
     def is_repo_and_branch_supported(
-        self, repo: str, target_branch: str, **kwargs
+        self, repo: str, target_branch: str, **kwargs: Any
     ) -> bool:
         try:
             self.get_build_settings(repo, target_branch, **kwargs)

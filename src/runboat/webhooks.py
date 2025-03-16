@@ -58,7 +58,7 @@ def receive_pull_request(
 ) -> None:
     repo = payload["repository"]["full_name"]
     target_branch = payload["pull_request"]["base"]["ref"]
-    params = {}
+    params: dict[str, typing.Any] = {}
     if payload["action"] in ("opened", "synchronize"):
         params.update(check_run=None, package=None)
     if not settings.is_repo_and_branch_supported(repo, target_branch, **params):
@@ -145,7 +145,7 @@ def receive_package(background_tasks: BackgroundTasks, payload: typing.Any) -> N
         CommitInfo(
             repo=repo,
             target_branch=semver,
-            pr=pr,
+            pr=int(pr),
             package=package,
             git_commit=commit,
         ),
