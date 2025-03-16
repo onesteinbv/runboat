@@ -313,13 +313,15 @@ def log(
                 break
         else:
             return None
-    return cast(
-        str,
-        corev1.read_namespaced_pod_log(
+    try:
+        log = corev1.read_namespaced_pod_log(
             pod.metadata.name,
             namespace=settings.build_namespace,
             container=container,
             tail_lines=None,
             follow=False,
-        ),
-    )
+        )
+    except ApiException as e:
+        log = e.body
+
+    return cast(str, log)
