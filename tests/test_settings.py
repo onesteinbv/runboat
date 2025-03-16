@@ -16,7 +16,7 @@ def test_get_build_settings() -> None:
         )
     with pytest.raises(RepoOrBranchNotSupported):
         assert not settings.get_build_settings(
-            "OCA/mis-builder", "15.0-stuff", None, True
+            "OCA/mis-builder", "15.0-stuff", check_run=None, package=None
         )
     assert settings.get_build_settings(
         "OCA/mis-builder", "15.0", check_run=None, package=None
