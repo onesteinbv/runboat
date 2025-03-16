@@ -174,7 +174,13 @@ class Build(BaseModel):
         return f"{self.webui_link}?live"
 
     async def init_log(self) -> str | None:
-        return await k8s.log(self.name, job_kind=k8s.DeploymentMode.initialize)
+        default_container_log = await k8s.log(
+            self.name, job_kind=k8s.DeploymentMode.initialize
+        )
+        build_image_log = await k8s.log(
+            self.name, job_kind=k8s.DeploymentMode.initialize, container="build-image"
+        )
+        return (build_image_log or "") + default_container_log
 
     async def log(self) -> str | None:
         return await k8s.log(self.name, job_kind=None)

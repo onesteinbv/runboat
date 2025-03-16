@@ -283,7 +283,9 @@ def kill_job(build_name: str, job_kind: DeploymentMode) -> None:
 
 
 @sync_to_async
-def log(build_name: str, job_kind: DeploymentMode | None) -> str | None:
+def log(
+    build_name: str, job_kind: DeploymentMode | None, container: str | None = None
+) -> str | None:
     """Return the build log.
 
     The pod for which the log is returned is the first that matches the
@@ -300,14 +302,23 @@ def log(build_name: str, job_kind: DeploymentMode | None) -> str | None:
     else:
         # no matching pod found
         return None
+
+    if container is None:
+        container = pod.metadata.annotations.get(
+            "kubectl.kubernetes.io/default-container"
+        )
+    elif init_containers := pod.spec.init_containers:
+        for init_container in init_containers:
+            if init_container.name == container:
+                break
+        else:
+            return None
     return cast(
         str,
         corev1.read_namespaced_pod_log(
             pod.metadata.name,
             namespace=settings.build_namespace,
-            container=pod.metadata.annotations.get(
-                "kubectl.kubernetes.io/default-container"
-            ),
+            container=container,
             tail_lines=None,
             follow=False,
         ),
