@@ -52,7 +52,7 @@ configMapGenerator:
       {%- for key, value in build_env.items() %}
       - {{ key }}={{ value }}
       {%- endfor %}
-  - name: buildenv
+  - name: initenv
     literals:
       - RUNBOAT_GIT_REPO={{ commit_info.repo }}
       - RUNBOAT_GIT_REF={{ commit_info.git_commit }}

@@ -19,11 +19,9 @@ spec:
           args: ["sh", "/runboat/runboat-build-image.sh"]
           envFrom:
             - secretRef:
-                name: secretenv
-            - secretRef:
                 name: initsecretenv
             - configMapRef:
-                name: buildenv
+                name: initenv
           volumeMounts:
             - name: runboat-scripts
               mountPath: /runboat
