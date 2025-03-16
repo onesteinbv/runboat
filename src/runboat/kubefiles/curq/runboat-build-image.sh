@@ -1,8 +1,9 @@
+set -e
 # Login into ghcr.io
 echo $DOCKER_PASSWORD | docker login ghcr.io --username $DOCKER_USER --password-stdin
 
 # Enable explicit execution
-set -ex
+set -x
 unset DOCKER_HOST
 
 # Install tools
