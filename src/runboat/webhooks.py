@@ -1,5 +1,6 @@
 import hmac
 import logging
+import re
 import typing
 from typing import Annotated
 
@@ -32,7 +33,9 @@ def _verify_github_signature(
 def receive_push(background_tasks: BackgroundTasks, payload: typing.Any) -> None:
     repo = payload["repository"]["full_name"]
     target_branch = payload["ref"].split("/")[-1]
-    if not settings.is_repo_and_branch_supported(repo, target_branch):
+    if not settings.is_repo_and_branch_supported(
+        repo, target_branch, check_run=None, package=None
+    ):
         _logger.debug(
             "Ignoring push payload for unsupported repo %s or target branch %s",
             repo,
@@ -94,13 +97,16 @@ def receive_check_run(background_tasks: BackgroundTasks, payload: typing.Any) ->
     target_branch = payload["check_run"]["check_suite"].get("head_branch", None)
     if not target_branch:
         return
-    if not settings.is_repo_and_branch_supported(repo, target_branch, check_run):
+    if not settings.is_repo_and_branch_supported(
+        repo, target_branch, check_run=check_run, package=None
+    ):
         _logger.debug(
             "Ignoring check_run payload for unsupported repo %s or target branch %s",
             repo,
             target_branch,
         )
         return
+    commit = payload["check_run"]["head_sha"]
     background_tasks.add_task(
         controller.deploy_commit,
         CommitInfo(
@@ -108,13 +114,42 @@ def receive_check_run(background_tasks: BackgroundTasks, payload: typing.Any) ->
             target_branch=target_branch,
             pr=None,
             check_run=check_run,
-            git_commit=payload["check_run"]["head_sha"],
+            git_commit=commit,
         ),
     )
 
 
 def receive_package(background_tasks: BackgroundTasks, payload: typing.Any) -> None:
-    return
+    repo = payload["repository"]["full_name"]
+    package = payload["package"]["name"]
+    if payload["action"] != "published":
+        return
+
+    container_metadata = payload["package"]["package_version"]["container_metadata"]
+    match = re.match(r"^([^-]+)-(\d+)-([^-]+)$", container_metadata["tag"]["name"])
+    if not match:
+        return
+    semver, pr, commit = match.groups()
+
+    if not settings.is_repo_and_branch_supported(
+        repo, semver, check_run=None, package=package
+    ):
+        _logger.debug(
+            "Ignoring check_run payload for unsupported repo %s or target branch %s",
+            repo,
+            semver,
+        )
+        return
+    background_tasks.add_task(
+        controller.deploy_commit,
+        CommitInfo(
+            repo=repo,
+            target_branch=semver,
+            pr=pr,
+            package=package,
+            git_commit=commit,
+        ),
+    )
 
 
 @router.post("/webhooks/github")
