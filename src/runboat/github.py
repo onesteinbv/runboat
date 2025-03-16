@@ -90,14 +90,18 @@ async def notify_status(
 
 
 async def dispatch_workflow(
-    repo: str, workflow_id: str, ref: str, pr: str | None
+    repo: str,
+    workflow_id: str,
+    target_branch: str,
+    pr: str | None,
+    git_commit: str | None,
 ) -> None:
-    inputs = {"pr": pr}
+    inputs = {"pr": pr, "git_commit": git_commit}
     try:
         await _github_request(
             "POST",
             f"/repos/{repo}/actions/workflows/{workflow_id}/dispatches",
-            json={"ref": ref, "inputs": inputs},
+            json={"ref": target_branch, "inputs": inputs},
         )
     except httpx.HTTPStatusError as e:
         _logger.error(
