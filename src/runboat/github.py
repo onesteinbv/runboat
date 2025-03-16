@@ -32,6 +32,7 @@ class CommitInfo(BaseModel):
     pr: int | None
     git_commit: str
     check_run: str | None = None
+    package: str | None = None
 
     @field_validator("repo")
     def validate_repo(cls, v: str) -> str:

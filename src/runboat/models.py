@@ -83,8 +83,8 @@ class Build(BaseModel):
                 target_branch=deployment.metadata.annotations["runboat/target-branch"],
                 pr=deployment.metadata.annotations.get("runboat/pr") or None,
                 git_commit=deployment.metadata.annotations["runboat/git-commit"],
-                check_run=deployment.metadata.annotations.get("runboat/check-run")
-                or None,
+                check_run=deployment.metadata.annotations.get("runboat/check-run"),
+                package=deployment.metadata.annotations.get("runboat/package") or None,
             ),
             init_status=deployment.metadata.annotations["runboat/init-status"],
             status=cls._status_from_deployment(deployment),
@@ -189,7 +189,10 @@ class Build(BaseModel):
     ) -> None:
         """Internal method to prepare for and handle a k8s.deploy()."""
         build_settings = settings.get_build_settings(
-            commit_info.repo, commit_info.target_branch, commit_info.check_run, True
+            commit_info.repo,
+            commit_info.target_branch,
+            check_run=commit_info.check_run,
+            package=commit_info.package,
         )[0]
         kubefiles_path = (
             build_settings.kubefiles_path or settings.build_default_kubefiles_path

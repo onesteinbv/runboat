@@ -31,6 +31,7 @@ class RepoSettings(BaseModel):
     branch: str  # regex
     builds: list[BuildSettings]
     check_run: str | None = None
+    package: str | None = None
 
     @field_validator("builds")
     def validate_builds(cls, v: list[BuildSettings]) -> list[BuildSettings]:
@@ -87,19 +88,19 @@ class Settings(BaseSettings):
     disable_commit_statuses: bool = False
 
     def get_build_settings(
-        self,
-        repo: str,
-        target_branch: str,
-        check_run: str | None,
-        strict_check_run: bool,
+        self, repo: str, target_branch: str, **kwargs
     ) -> list[BuildSettings]:
         for repo_settings in self.repos:
             if not re.match(repo_settings.repo, repo, re.IGNORECASE):
                 continue
             if not re.match(repo_settings.branch, target_branch):
                 continue
-            if strict_check_run and check_run != repo_settings.check_run:
-                continue
+            if "check_run" in kwargs:
+                if kwargs["check_run"] != repo_settings.check_run:
+                    continue
+            if "package" in kwargs:
+                if kwargs["package"] != repo_settings.package:
+                    continue
 
             return repo_settings.builds
         raise RepoOrBranchNotSupported(
@@ -107,14 +108,10 @@ class Settings(BaseSettings):
         )
 
     def is_repo_and_branch_supported(
-        self,
-        repo: str,
-        target_branch: str,
-        check_run: str | None = None,
-        strict_check_run: bool = True,
+        self, repo: str, target_branch: str, **kwargs
     ) -> bool:
         try:
-            self.get_build_settings(repo, target_branch, check_run, strict_check_run)
+            self.get_build_settings(repo, target_branch, **kwargs)
         except RepoOrBranchNotSupported:
             return False
         else:

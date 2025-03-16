@@ -29,61 +29,92 @@ def _verify_github_signature(
     return True
 
 
-def handle_check_run(background_tasks: BackgroundTasks, payload: typing.Any) -> None:
+def receive_push(background_tasks: BackgroundTasks, payload: typing.Any) -> None:
     repo = payload["repository"]["full_name"]
-    prs = payload["check_run"].get("pull_requests", [])
+    target_branch = payload["ref"].split("/")[-1]
+    if not settings.is_repo_and_branch_supported(repo, target_branch):
+        _logger.debug(
+            "Ignoring push payload for unsupported repo %s or target branch %s",
+            repo,
+            target_branch,
+        )
+        return
+    background_tasks.add_task(
+        controller.deploy_commit,
+        CommitInfo(
+            repo=repo,
+            target_branch=target_branch,
+            pr=None,
+            git_commit=payload["after"],
+        ),
+    )
+
+
+def receive_pull_request(
+    background_tasks: BackgroundTasks, payload: typing.Any
+) -> None:
+    repo = payload["repository"]["full_name"]
+    target_branch = payload["pull_request"]["base"]["ref"]
+    params = {repo: repo, target_branch: target_branch}
+    if payload["action"] in ("opened", "synchronize"):
+        params.update(check_run=None, package=None)
+    if not settings.is_repo_and_branch_supported(**params):
+        _logger.debug(
+            "Ignoring pull_request payload for unsupported repo %s or target branch %s",
+            repo,
+            target_branch,
+        )
+        return
+    if payload["action"] in ("opened", "synchronize"):
+        background_tasks.add_task(
+            controller.deploy_commit,
+            CommitInfo(
+                repo=repo,
+                target_branch=target_branch,
+                pr=payload["pull_request"]["number"],
+                git_commit=payload["pull_request"]["head"]["sha"],
+            ),
+        )
+    elif payload["action"] in ("closed",):
+        background_tasks.add_task(
+            controller.undeploy_builds,
+            repo=repo,
+            pr=payload["pull_request"]["number"],
+        )
+
+
+def receive_check_run(background_tasks: BackgroundTasks, payload: typing.Any) -> None:
+    repo = payload["repository"]["full_name"]
     check_run = payload["check_run"]["name"]
     if payload["action"] != "completed":
         return
-
     if payload["check_run"]["conclusion"] != "success":
         return
 
-    for pr in prs:
-        target_branch = pr["base"]["ref"]
-
-        if not settings.is_repo_and_branch_supported(repo, target_branch, check_run):
-            _logger.debug(
-                "Ignoring check_run payload for unsupported "
-                "repo %s or target branch %s",
-                repo,
-                target_branch,
-            )
-            continue
-
-        background_tasks.add_task(
-            controller.deploy_commit,
-            CommitInfo(
-                repo=repo,
-                target_branch=target_branch,
-                pr=pr["number"],
-                check_run=check_run,
-                git_commit=pr["head"]["sha"],
-            ),
+    target_branch = payload["check_run"]["check_suite"].get("head_branch", None)
+    if not target_branch:
+        return
+    if not settings.is_repo_and_branch_supported(repo, target_branch, check_run):
+        _logger.debug(
+            "Ignoring check_run payload for unsupported repo %s or target branch %s",
+            repo,
+            target_branch,
         )
+        return
+    background_tasks.add_task(
+        controller.deploy_commit,
+        CommitInfo(
+            repo=repo,
+            target_branch=target_branch,
+            pr=None,
+            check_run=check_run,
+            git_commit=payload["check_run"]["head_sha"],
+        ),
+    )
 
-    if not prs:
-        target_branch = payload["check_run"]["check_suite"].get("head_branch", None)
-        if not target_branch:
-            return
-        if not settings.is_repo_and_branch_supported(repo, target_branch, check_run):
-            _logger.debug(
-                "Ignoring check_run payload for unsupported "
-                "repo %s or target branch %s",
-                repo,
-                target_branch,
-            )
-            return
-        background_tasks.add_task(
-            controller.deploy_commit,
-            CommitInfo(
-                repo=repo,
-                target_branch=target_branch,
-                pr=None,
-                check_run=check_run,
-                git_commit=payload["check_run"]["head_sha"],
-            ),
-        )
+
+def receive_package(background_tasks: BackgroundTasks, payload: typing.Any) -> None:
+    return
 
 
 @router.post("/webhooks/github")
@@ -100,55 +131,10 @@ async def receive_payload(
         return
     payload = await request.json()
     if x_github_event == "pull_request":
-        repo = payload["repository"]["full_name"]
-        target_branch = payload["pull_request"]["base"]["ref"]
-        closed_action = payload["action"] in ("closed",)
-        open_action = payload["action"] in ("opened", "synchronize")
-        if not settings.is_repo_and_branch_supported(
-            repo, target_branch, None, strict_check_run=open_action
-        ):
-            _logger.debug(
-                "Ignoring %s payload for unsupported repo %s or target branch %s",
-                x_github_event,
-                repo,
-                target_branch,
-            )
-            return
-        if open_action:
-            background_tasks.add_task(
-                controller.deploy_commit,
-                CommitInfo(
-                    repo=repo,
-                    target_branch=target_branch,
-                    pr=payload["pull_request"]["number"],
-                    git_commit=payload["pull_request"]["head"]["sha"],
-                ),
-            )
-        elif closed_action:
-            background_tasks.add_task(
-                controller.undeploy_builds,
-                repo=repo,
-                pr=payload["pull_request"]["number"],
-            )
+        receive_pull_request(background_tasks, payload)
     elif x_github_event == "push":
-        repo = payload["repository"]["full_name"]
-        target_branch = payload["ref"].split("/")[-1]
-        if not settings.is_repo_and_branch_supported(repo, target_branch):
-            _logger.debug(
-                "Ignoring %s payload for unsupported repo %s or target branch %s",
-                x_github_event,
-                repo,
-                target_branch,
-            )
-            return
-        background_tasks.add_task(
-            controller.deploy_commit,
-            CommitInfo(
-                repo=repo,
-                target_branch=target_branch,
-                pr=None,
-                git_commit=payload["after"],
-            ),
-        )
+        receive_push(background_tasks, payload)
     elif x_github_event == "check_run":
-        handle_check_run(background_tasks, payload)
+        receive_check_run(background_tasks, payload)
+    elif x_github_event == "package":
+        receive_package(background_tasks, payload)
