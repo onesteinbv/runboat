@@ -160,6 +160,7 @@ class DeploymentVars(BaseModel):
     build_env: dict[str, str]
     build_secret_env: dict[str, str]
     build_template_vars: dict[str, str]
+    build_init_secret_env: dict[str, str]
 
 
 def make_deployment_vars(
@@ -182,6 +183,7 @@ def make_deployment_vars(
         image_tag=image_tag,
         build_env=settings.build_env | build_settings.env,
         build_secret_env=settings.build_secret_env | build_settings.secret_env,
+        build_init_secret_env=settings.build_init_secret_env,
         build_template_vars=settings.build_template_vars | build_settings.template_vars,
     )
 

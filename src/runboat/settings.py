@@ -65,6 +65,8 @@ class Settings(BaseSettings):
     # A dictionary of secret environment variables to set in the build container and
     # jobs.
     build_secret_env: dict[str, str] = {}
+    # A dictionary of secret environment variables to set in the init container
+    build_init_secret_env: dict[str, str] = {}
     # A dictionary of variables to be set in the jinja rendering context for the
     # kubefiles.
     build_template_vars: dict[str, str] = {}

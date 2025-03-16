@@ -37,6 +37,11 @@ secretGenerator:
       {%- for key, value in build_secret_env.items() %}
       - {{ key }}={{ value }}
       {%- endfor %}
+  - name: initsecretenv
+    literals:
+      {%- for key, value in build_init_secret_env.items() %}
+      - {{ key }}={{ value }}
+      {%- endfor %}
 
 configMapGenerator:
   - name: odooenv
