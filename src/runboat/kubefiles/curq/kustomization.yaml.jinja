@@ -32,7 +32,7 @@ images:
     newTag: "{{ image_tag }}"
 
 secretGenerator:
-  - name: odoosecretenv
+  - name: secretenv
     literals:
       {%- for key, value in build_secret_env.items() %}
       - {{ key }}={{ value }}
@@ -47,11 +47,17 @@ configMapGenerator:
       {%- for key, value in build_env.items() %}
       - {{ key }}={{ value }}
       {%- endfor %}
+  - name: buildenv
+    literals:
+      - RUNBOAT_GIT_REPO={{ commit_info.repo }}
+      - RUNBOAT_GIT_REF={{ commit_info.git_commit }}
+      - IMAGE_TAG={{ image_name }}:{{ image_tag }}
   - name: runboat-scripts
     files:
       - runboat-initialize.sh
       - runboat-cleanup.sh
       - runboat-start.sh
+      - runboat-build-image.sh
 
 generatorOptions:
   disableNameSuffixHash: true

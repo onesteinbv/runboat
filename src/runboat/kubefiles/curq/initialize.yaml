@@ -11,6 +11,20 @@ spec:
         runboat/job-kind: initialize
     spec:
       enableServiceLinks: false
+      initContainers:
+        - name: build-image
+          image: docker:dind
+          securityContext:
+            privileged: true
+          args: ["sh", "/runboat/runboat-build-image.sh"]
+          envFrom:
+            - secretRef:
+                name: secretenv
+            - configMapRef:
+                name: buildenv
+          volumeMounts:
+            - name: runboat-scripts
+              mountPath: /runboat
       containers:
         - name: initialize
           image: odoo
@@ -21,7 +35,7 @@ spec:
               mountPath: /odoo/data
           envFrom:
             - secretRef:
-                name: odoosecretenv
+                name: secretenv
             - configMapRef:
                 name: odooenv
           args: ["/runboat/runboat-initialize.sh"]

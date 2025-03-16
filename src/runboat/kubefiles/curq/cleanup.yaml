@@ -19,7 +19,7 @@ spec:
               mountPath: /runboat
           envFrom:
             - secretRef:
-                name: odoosecretenv
+                name: secretenv
             - configMapRef:
                 name: odooenv
           args: ["bash", "/runboat/runboat-cleanup.sh"]
