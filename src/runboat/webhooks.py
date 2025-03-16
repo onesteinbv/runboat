@@ -58,10 +58,10 @@ def receive_pull_request(
 ) -> None:
     repo = payload["repository"]["full_name"]
     target_branch = payload["pull_request"]["base"]["ref"]
-    params = {repo: repo, target_branch: target_branch}
+    params = {}
     if payload["action"] in ("opened", "synchronize"):
         params.update(check_run=None, package=None)
-    if not settings.is_repo_and_branch_supported(**params):
+    if not settings.is_repo_and_branch_supported(repo, target_branch, **params):
         _logger.debug(
             "Ignoring pull_request payload for unsupported repo %s or target branch %s",
             repo,
