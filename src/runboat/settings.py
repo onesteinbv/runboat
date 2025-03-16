@@ -1,6 +1,6 @@
 import re
 from pathlib import Path
-from typing import Annotated, Any
+from typing import Annotated
 
 from pydantic import BaseModel, BeforeValidator, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -30,8 +30,6 @@ class RepoSettings(BaseModel):
     repo: str  # regex
     branch: str  # regex
     builds: list[BuildSettings]
-    check_run: str | None = None
-    package: str | None = None
 
     @field_validator("builds")
     def validate_builds(cls, v: list[BuildSettings]) -> list[BuildSettings]:
@@ -89,31 +87,21 @@ class Settings(BaseSettings):
     # Disable posting of statuses to GitHub commits
     disable_commit_statuses: bool = False
 
-    def get_build_settings(
-        self, repo: str, target_branch: str, **kwargs: Any
-    ) -> list[BuildSettings]:
+    def get_build_settings(self, repo: str, target_branch: str) -> list[BuildSettings]:
         for repo_settings in self.repos:
             if not re.match(repo_settings.repo, repo, re.IGNORECASE):
                 continue
             if not re.match(repo_settings.branch, target_branch):
                 continue
-            if "check_run" in kwargs:
-                if kwargs["check_run"] != repo_settings.check_run:
-                    continue
-            if "package" in kwargs:
-                if kwargs["package"] != repo_settings.package:
-                    continue
 
             return repo_settings.builds
         raise RepoOrBranchNotSupported(
             f"Branch {target_branch} of {repo} not supported."
         )
 
-    def is_repo_and_branch_supported(
-        self, repo: str, target_branch: str, **kwargs: Any
-    ) -> bool:
+    def is_repo_and_branch_supported(self, repo: str, target_branch: str) -> bool:
         try:
-            self.get_build_settings(repo, target_branch, **kwargs)
+            self.get_build_settings(repo, target_branch)
         except RepoOrBranchNotSupported:
             return False
         else:
