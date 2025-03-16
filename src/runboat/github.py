@@ -87,3 +87,8 @@ async def notify_status(
             f"Failed to post GitHub commit status (code {e.response.status_code}):\n"
             f"{e.response.text}"
         )
+
+
+async def dispatch_workflow(repo: str) -> None:
+    # todo
+    return
