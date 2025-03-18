@@ -113,6 +113,18 @@ async def trigger_branch(repo: str, branch: str) -> None:
 
 
 @router.post(
+    "/builds/trigger/workflow",
+    dependencies=[Depends(authenticated)],
+)
+async def trigger_workflow(repo: str, branch: str, workflow_id: str) -> None:
+    """Trigger GitHub workflow."""
+    commit_info = await github.get_branch_info(repo, branch)
+    await github.dispatch_workflow(
+        repo, workflow_id, branch, None, commit_info.git_commit
+    )
+
+
+@router.post(
     "/builds/trigger/pr",
     dependencies=[Depends(authenticated)],
 )

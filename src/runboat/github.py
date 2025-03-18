@@ -23,6 +23,8 @@ async def _github_request(method: str, url: str, json: Any = None) -> Any:
         if response.status_code == 404:
             raise NotFoundOnGitHub(f"GitHub URL not found: {full_url} ({method}).")
         response.raise_for_status()
+        if response.status_code == 204:
+            return None
         return response.json()
 
 
