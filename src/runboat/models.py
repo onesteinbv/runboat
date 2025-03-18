@@ -222,7 +222,6 @@ class Build(BaseModel):
             k8s.DeploymentMode.deployment,
             commit_info.repo,
             commit_info.target_branch,
-            commit_info.pr,
             commit_info.git_commit,
         )
 
@@ -372,21 +371,17 @@ class Build(BaseModel):
         mode: k8s.DeploymentMode,
         repo: str,
         target_branch: str,
-        pr: int | None,
         git_commit: str,
     ) -> None:
         workflows = settings.get_workflows(repo, target_branch, mode)
         for workflow in workflows:
-            await github.dispatch_workflow(
-                repo, workflow, target_branch, pr, git_commit
-            )
+            await github.dispatch_workflow(repo, workflow, target_branch, git_commit)
 
     async def dispatch_workflows(self, mode: k8s.DeploymentMode) -> None:
         repo = self.commit_info.repo
         target_branch = self.commit_info.target_branch
-        pr = self.commit_info.pr
         git_commit = self.commit_info.git_commit
-        await self._dispatch_workflows(mode, repo, target_branch, pr, git_commit)
+        await self._dispatch_workflows(mode, repo, target_branch, git_commit)
 
     async def _patch(
         self,

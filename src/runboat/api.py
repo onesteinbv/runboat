@@ -119,9 +119,7 @@ async def trigger_branch(repo: str, branch: str) -> None:
 async def trigger_workflow(repo: str, branch: str, workflow_id: str) -> None:
     """Trigger GitHub workflow."""
     commit_info = await github.get_branch_info(repo, branch)
-    await github.dispatch_workflow(
-        repo, workflow_id, branch, None, commit_info.git_commit
-    )
+    await github.dispatch_workflow(repo, workflow_id, branch, commit_info.git_commit)
 
 
 @router.post(
