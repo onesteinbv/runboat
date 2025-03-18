@@ -5,8 +5,6 @@ from typing import Annotated
 from pydantic import BaseModel, BeforeValidator, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from runboat.k8s import DeploymentMode
-
 from .exceptions import RepoOrBranchNotSupported
 
 
@@ -32,7 +30,7 @@ class RepoSettings(BaseModel):
     repo: str  # regex
     branch: str  # regex
     builds: list[BuildSettings]
-    workflows: dict[DeploymentMode, list[str]] = {}
+    workflows: dict[str, list[str]] = {}
 
     @field_validator("builds")
     def validate_builds(cls, v: list[BuildSettings]) -> list[BuildSettings]:
@@ -100,9 +98,7 @@ class Settings(BaseSettings):
             f"Branch {target_branch} of {repo} not supported."
         )
 
-    def get_workflows(
-        self, repo: str, target_branch: str, job_kind: DeploymentMode
-    ) -> list[str]:
+    def get_workflows(self, repo: str, target_branch: str, job_kind: str) -> list[str]:
         repo_settings: RepoSettings = self._find_repo_settings(repo, target_branch)
         return repo_settings.workflows.get(job_kind, [])
 
