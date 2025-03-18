@@ -91,7 +91,7 @@ async def dispatch_workflow(
     repo: str,
     workflow_id: str,
     target_branch: str,
-    pr: str | None,
+    pr: int | None,
     git_commit: str | None,
 ) -> None:
     inputs = {"pr": pr, "git_commit": git_commit}

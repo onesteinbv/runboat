@@ -5,6 +5,8 @@ from typing import Annotated
 from pydantic import BaseModel, BeforeValidator, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from runboat.k8s import DeploymentMode
+
 from .exceptions import RepoOrBranchNotSupported
 
 
@@ -30,6 +32,7 @@ class RepoSettings(BaseModel):
     repo: str  # regex
     branch: str  # regex
     builds: list[BuildSettings]
+    workflows: dict[DeploymentMode, list[str]] = {}
 
     @field_validator("builds")
     def validate_builds(cls, v: list[BuildSettings]) -> list[BuildSettings]:
@@ -87,17 +90,24 @@ class Settings(BaseSettings):
     # Disable posting of statuses to GitHub commits
     disable_commit_statuses: bool = False
 
-    def get_build_settings(self, repo: str, target_branch: str) -> list[BuildSettings]:
+    def _find_repo_settings(self, repo: str, target_branch: str):
         for repo_settings in self.repos:
-            if not re.match(repo_settings.repo, repo, re.IGNORECASE):
-                continue
-            if not re.match(repo_settings.branch, target_branch):
-                continue
-
-            return repo_settings.builds
+            if re.match(repo_settings.repo, repo, re.IGNORECASE) and re.match(
+                repo_settings.branch, target_branch
+            ):
+                return repo_settings
         raise RepoOrBranchNotSupported(
             f"Branch {target_branch} of {repo} not supported."
         )
+
+    def get_workflows(
+        self, repo: str, target_branch: str, job_kind: DeploymentMode
+    ) -> list[str]:
+        repo_settings: RepoSettings = self._find_repo_settings(repo, target_branch)
+        return repo_settings.workflows.get(job_kind, [])
+
+    def get_build_settings(self, repo: str, target_branch: str) -> list[BuildSettings]:
+        return self._find_repo_settings(repo, target_branch).builds
 
     def is_repo_and_branch_supported(self, repo: str, target_branch: str) -> bool:
         try:
