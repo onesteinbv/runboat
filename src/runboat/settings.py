@@ -88,7 +88,7 @@ class Settings(BaseSettings):
     # Disable posting of statuses to GitHub commits
     disable_commit_statuses: bool = False
 
-    def _find_repo_settings(self, repo: str, target_branch: str):
+    def _find_repo_settings(self, repo: str, target_branch: str) -> RepoSettings:
         for repo_settings in self.repos:
             if re.match(repo_settings.repo, repo, re.IGNORECASE) and re.match(
                 repo_settings.branch, target_branch

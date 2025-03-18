@@ -382,7 +382,7 @@ class Build(BaseModel):
             )
 
     async def dispatch_workflows(self, mode: k8s.DeploymentMode) -> None:
-        repo = self.commit_info.validate_repo
+        repo = self.commit_info.repo
         target_branch = self.commit_info.target_branch
         pr = self.commit_info.pr
         git_commit = self.commit_info.git_commit
