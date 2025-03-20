@@ -31,7 +31,7 @@ spec:
               mountPath: /odoo/data
           envFrom:
             - secretRef:
-                name: odoosecretenv
+                name: secretenv
             - configMapRef:
                 name: odooenv
           ports:
