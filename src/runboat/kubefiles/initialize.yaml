@@ -14,12 +14,12 @@ spec:
       containers:
         - name: initialize
           image: odoo
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           volumeMounts:
             - name: runboat-scripts
               mountPath: /runboat
             - name: data
-              mountPath: /odoo/data
+              mountPath: /mnt/data
           envFrom:
             - secretRef:
                 name: odoosecretenv
