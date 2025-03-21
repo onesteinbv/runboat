@@ -15,6 +15,11 @@ mkdir -p $ADDONS_DIR
 cd $ADDONS_DIR
 curl -sSL https://github.com/${RUNBOAT_GIT_REPO}/tarball/${RUNBOAT_GIT_REF} | tar zxf - --strip-components=1
 
+# Install repo requirements.
+if [[ -f requirements.txt ]] ; then
+    pip install -r requirements.txt
+fi
+
 # Install.
 INSTALL_METHOD=${INSTALL_METHOD:-oca_install_addons}
 if [[ "${INSTALL_METHOD}" == "oca_install_addons" ]] ; then
@@ -24,10 +29,6 @@ elif [[ "${INSTALL_METHOD}" == "editable_pip_install" ]] ; then
 else
     echo "Unsupported INSTALL_METHOD: '${INSTALL_METHOD}'"
     exit 1
-fi
-
-if [[ -f requirements.txt ]] ; then
-    pip install -r requirements.txt
 fi
 
 # Keep a copy of the venv that we can re-use for shorter startup time.
