@@ -20,6 +20,12 @@ if [[ -f requirements.txt ]] ; then
     pip install -r requirements.txt
 fi
 
+if [[ -f repos.yaml ]] ; then
+    pip install git-aggregator
+    gitaggregate -c repos.yaml
+    ADDONS_PATH=$ADDONS_PATH,$(find ./* -name .git -exec dirname {} \; | uniq | tr '\n' ',' | sed 's/,$//')
+fi
+
 # Install.
 INSTALL_METHOD=${INSTALL_METHOD:-oca_install_addons}
 if [[ "${INSTALL_METHOD}" == "oca_install_addons" ]] ; then
