@@ -24,7 +24,7 @@ fi
 if [[ -f repos.yaml ]] ; then
     pip install git-aggregator
     gitaggregate -c repos.yaml
-    ADDONS_PATH=$ADDONS_PATH,$(find ./* -name .git -exec dirname {} \; | uniq | tr '\n' ',' | sed 's/,$//')
+    ADDONS_PATH=$ADDONS_PATH,$(find $(pwd)/* -name .git -exec dirname {} \; | uniq | tr '\n' ',' | sed 's/,$//')
 fi
 
 # Install.
