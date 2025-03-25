@@ -17,6 +17,11 @@ pip list
 # Make sure users cannot create databases.
 echo "admin_passwd=$(python3 -c 'import secrets; print(secrets.token_hex())')" >> ${ODOO_RC}
 
+# Add aggragated addons to ADDONS_PATH
+if [[ -f ${ADDONS_DIR}/repos.yaml ]] ; then
+  ADDONS_PATH=$ADDONS_PATH,$(find ${ADDONS_DIR}/* -name .git -exec dirname {} \; | uniq | tr '\n' ',' | sed 's/,$//')
+fi
+
 # Add ADDONS_DIR to addons_path (because that oca_install_addons did,
 # but $ODOO_RC is not on a persistent volume, so it is lost when we
 # start in another container).
