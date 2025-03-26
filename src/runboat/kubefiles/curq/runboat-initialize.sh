@@ -20,6 +20,9 @@ dropdb --if-exists ${PGDATABASE}
 
 # Get all bundles
 export MODULES=$(manifestoo -d /odoo/custom list | grep _install | paste -sd,)
+if [[ -z "$MODULES" ]]; then
+    MODULES="base"
+fi
 
 /usr/local/bin/entrypoint.sh
 
