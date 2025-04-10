@@ -19,3 +19,6 @@ loggers:
     level: INFO
   sse_starlette.sse:
     level: INFO
+  uvicorn.access:
+    level: WARNING
+    propagate: false
