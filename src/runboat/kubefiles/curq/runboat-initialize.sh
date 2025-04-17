@@ -16,7 +16,7 @@ export DOCKER="false"
 wait_for_postgres.sh
 
 # Drop database, in case we are reinitializing.
-dropdb --if-exists ${PGDATABASE}
+dropdb --if-exists --force ${PGDATABASE}
 
 # Get all bundles
 export MODULES=$(manifestoo -d /odoo/custom list | grep _install | paste -sd,)
