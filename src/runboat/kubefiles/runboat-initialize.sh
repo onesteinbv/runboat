@@ -11,8 +11,8 @@ bash /runboat/runboat-clone-and-install.sh
 oca_wait_for_postgres
 
 # Drop database, in case we are reinitializing.
-dropdb --if-exists --force ${PGDATABASE}
-dropdb --if-exists --force ${PGDATABASE}-baseonly
+dropdb --if-exists ${PGDATABASE}
+dropdb --if-exists ${PGDATABASE}-baseonly
 
 ADDONS=$(manifestoo --select-addons-dir ${ADDONS_DIR} --select-include "${INCLUDE}" --select-exclude "${EXCLUDE}" list --separator=,)
 
