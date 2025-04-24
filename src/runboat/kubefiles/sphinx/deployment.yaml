@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sphinx
+  annotations:
+    runboat/init-status: "todo"  # ask controller to initialize when there is capacity
+  finalizers:
+    - runboat/cleanup
+spec:
+  replicas: 0
+  selector:
+    matchLabels:
+      name: sphinx
+  template:
+    metadata:
+      labels:
+        name: sphinx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx
+        resources:
+          requests:
+            memory: 128Mi
+            cpu: 250m
+          limits:
+            memory: 256Mi
+            cpu: 300m
+        ports:
+        - containerPort: 80
+          name: http
+        volumeMounts:
+         - mountPath: /usr/share/nginx/html
+           subPath: docs/build/html
+           name: data
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: data

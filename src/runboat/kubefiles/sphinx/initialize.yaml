@@ -1,0 +1,44 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: initialize
+  labels:
+    runboat/job-kind: initialize
+spec:
+  template:
+    metadata:
+      labels:
+        runboat/job-kind: initialize
+    spec:
+      restartPolicy: Never
+      initContainers:
+      - name: download
+        image: bash:latest
+        command: ["bash", "-c"]
+        envFrom:
+          - configMapRef:
+              name: env
+        args:
+          - |
+            rm -rf /data/docs
+            mkdir /data/docs
+            wget -qO- https://github.com/${RUNBOAT_GIT_REPO}/tarball/${RUNBOAT_GIT_REF} | tar zxf - -C /data/docs --strip-components=1
+        volumeMounts:
+         - mountPath: /data
+           name: data
+      containers:
+      - name: make-html
+        image: sphinx
+        imagePullPolicy: Always
+        command: ["bash", "-c"]
+        args:
+         - |
+           cd /data/docs
+           make html
+        volumeMounts:
+         - mountPath: /data
+           name: data
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: data

@@ -1,0 +1,58 @@
+resources:
+  {%- if mode == 'deployment' %}
+  - pvc.yaml
+  - deployment.yaml
+  - service.yaml
+  - ingress.yaml
+  {%- elif mode == "initialize" %}
+  - pvc.yaml
+  - initialize.yaml
+  {%- elif mode == "cleanup" %}
+  - cleanup.yaml
+  {%- endif %}
+
+namespace: {{ namespace }}
+
+namePrefix: "{{ build_name }}-"
+
+commonLabels:
+  runboat/build: "{{ build_name }}"
+
+commonAnnotations:
+  runboat/repo: "{{ commit_info.repo }}"
+  runboat/target-branch: "{{ commit_info.target_branch }}"
+  runboat/pr: "{{ commit_info.pr if commit_info.pr else '' }}"
+  runboat/git-commit: "{{ commit_info.git_commit }}"
+
+images:
+  - name: sphinx
+    newName: "{{ image_name }}"
+    newTag: "{{ image_tag }}"
+
+configMapGenerator:
+  - name: env
+    literals:
+      - RUNBOAT_GIT_REPO={{ commit_info.repo }}
+      - RUNBOAT_GIT_REF={{ commit_info.git_commit }}
+      {%- for key, value in build_env.items() %}
+      - {{ key }}={{ value }}
+      {%- endfor %}
+
+generatorOptions:
+  disableNameSuffixHash: true
+
+patches:
+  - target:
+      kind: PersistentVolumeClaim
+      name: data
+    patch: |-
+      - op: replace
+        path: /spec/storageClassName
+        value: {{ build_template_vars["storageClassName"] }}
+  - target:
+      kind: Ingress
+      name: sphinx
+    patch: |-
+      - op: replace
+        path: /spec/rules/0/host
+        value: {{ build_slug }}.{{ build_domain }}

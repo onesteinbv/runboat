@@ -1,0 +1,19 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: cleanup
+  labels:
+    runboat/job-kind: cleanup
+spec:
+  template:
+    metadata:
+      labels:
+        runboat/job-kind: cleanup
+    spec:
+      containers:
+      - name: nothing
+        image: bash:latest
+        command: ["bash", "-c", "echo 'Nothing to do'"]
+      restartPolicy: Never
+  completions: 1
+  backoffLimit: 6

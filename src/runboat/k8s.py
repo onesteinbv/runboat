@@ -9,7 +9,7 @@ from contextlib import contextmanager
 from enum import Enum
 from importlib import resources
 from pathlib import Path
-from typing import Any, NotRequired, TypedDict, cast
+from typing import Any, NotRequired, TypedDict
 
 import urllib3
 from jinja2 import Template
@@ -285,9 +285,7 @@ def kill_job(build_name: str, job_kind: DeploymentMode) -> None:
 
 
 @sync_to_async
-def log(
-    build_name: str, job_kind: DeploymentMode | None, container: str | None = None
-) -> str | None:
+def log(build_name: str, job_kind: DeploymentMode | None) -> str | None:
     """Return the build log.
 
     The pod for which the log is returned is the first that matches the
@@ -305,25 +303,25 @@ def log(
         # no matching pod found
         return None
 
-    if container is None:
-        container = pod.metadata.annotations.get(
-            "kubectl.kubernetes.io/default-container"
-        )
-    elif init_containers := pod.spec.init_containers:
+    containers = []
+    init_containers = pod.spec.init_containers
+    if init_containers:
         for init_container in init_containers:
-            if init_container.name == container:
-                break
-        else:
-            return None
-    try:
-        log = corev1.read_namespaced_pod_log(
-            pod.metadata.name,
-            namespace=settings.build_namespace,
-            container=container,
-            tail_lines=None,
-            follow=False,
-        )
-    except ApiException as e:
-        log = e.body
-
-    return cast(str, log)
+            containers.append(init_container.name)
+    containers.append(
+        pod.metadata.annotations.get("kubectl.kubernetes.io/default-container")
+    )
+    logs = []
+    for container in containers:
+        try:
+            log = corev1.read_namespaced_pod_log(
+                pod.metadata.name,
+                namespace=settings.build_namespace,
+                container=container,
+                tail_lines=None,
+                follow=False,
+            )
+        except ApiException as e:
+            log = e.body
+        logs.append(log)
+    return "\n".join(logs)
