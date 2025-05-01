@@ -10,6 +10,7 @@ spec:
       labels:
         runboat/job-kind: initialize
     spec:
+      enableServiceLinks: false
       restartPolicy: Never
       initContainers:
       - name: download
@@ -42,3 +43,6 @@ spec:
       - name: data
         persistentVolumeClaim:
           claimName: data
+  completions: 1
+  backoffLimit: 0
+  activeDeadlineSeconds: 600

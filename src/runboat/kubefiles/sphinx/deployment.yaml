@@ -15,6 +15,8 @@ spec:
     metadata:
       labels:
         name: sphinx
+      annotations:
+        kubectl.kubernetes.io/default-container: nginx
     spec:
       containers:
       - name: nginx
