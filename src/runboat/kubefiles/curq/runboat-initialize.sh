@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -ex
-
 # Compatibility with oca-ci
 export MODE="InstallOnly"
 export DB_HOST=$PGHOST
@@ -12,6 +10,8 @@ export WORKERS="0"
 export DB_NAME=$PGDATABASE
 export DB_FILTER="^$PGDATABASE$"
 export DOCKER="false"
+
+set -ex
 
 wait_for_postgres.sh
 
