@@ -1,12 +1,5 @@
 #!/bin/bash
 
-set -ex
-
-if [ ! -f /odoo/data/initialized ] ; then
-    echo "Build is not initialized. Cannot start."
-    exit 1
-fi
-
 # Compatibility with oca-ci
 export MODE="RunOnly"
 export DB_HOST=$PGHOST
@@ -18,6 +11,14 @@ export WORKERS="0"
 export DB_NAME=$PGDATABASE
 export DB_FILTER=^$PGDATABASE$
 export DOCKER="false"
+
+set -ex
+
+if [ ! -f /odoo/data/initialized ] ; then
+    echo "Build is not initialized. Cannot start."
+    exit 1
+fi
+
 
 wait_for_postgres.sh
 
