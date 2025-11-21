@@ -68,6 +68,12 @@ patches:
       - op: replace
         path: /spec/rules/0/host
         value: build-slug.runboat.odoo-community.org
+      - op: add
+        path: /spec/tls
+        value:
+          - hosts:
+              - build-slug.runboat.odoo-community.org
+            secretName: build-name-tls
   - target:
       kind: Ingress
       name: mailhog

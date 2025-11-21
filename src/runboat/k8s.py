@@ -161,6 +161,7 @@ class DeploymentVars(BaseModel):
     build_secret_env: dict[str, str]
     build_template_vars: dict[str, str]
     build_init_secret_env: dict[str, str]
+    ingress_annotations: dict[str, str] = {}
 
 
 def make_deployment_vars(
@@ -185,6 +186,7 @@ def make_deployment_vars(
         build_secret_env=settings.build_secret_env | build_settings.secret_env,
         build_init_secret_env=settings.build_init_secret_env,
         build_template_vars=settings.build_template_vars | build_settings.template_vars,
+        ingress_annotations=build_settings.ingress_annotations
     )
 
 

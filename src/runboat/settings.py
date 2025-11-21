@@ -24,6 +24,7 @@ class BuildSettings(BaseModel):
     secret_env: dict[str, str] = {}
     template_vars: dict[str, str] = {}
     kubefiles_path: Annotated[Path | None, BeforeValidator(validate_path)] = None
+    ingress_annotations: dict[str, str] = {}
 
 
 class RepoSettings(BaseModel):
