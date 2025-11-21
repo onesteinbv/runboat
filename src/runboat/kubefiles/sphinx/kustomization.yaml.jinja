@@ -56,3 +56,17 @@ patches:
       - op: replace
         path: /spec/rules/0/host
         value: {{ build_slug }}.{{ build_domain }}
+      - op: add
+        path: /spec/tls
+        value:
+          - hosts:
+              - {{ build_slug }}.{{ build_domain }}
+            secretName: {{ build_name }}-tls
+      {%- if ingress_annotations %}
+      - op: add
+        path: /metadata/annotations
+        value:
+          {%- for key ,value in ingress_annotations.items() %}
+          {{ key }}: {{ value }}
+          {%- endfor %}
+      {%- endif %}
