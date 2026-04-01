@@ -22,6 +22,8 @@ fi
 
 # Aggregate git repositories.
 if [[ -f repos.yaml ]] ; then
+    git config --global user.name "github-actions[bot]"
+    git config --global user.email "github-actions[bot]@users.noreply.github.com"
     pip install git-aggregator
     gitaggregate -c repos.yaml
     ADDONS_PATH=$ADDONS_PATH,$(find $(pwd)/* -name .git -exec dirname {} \; | uniq | tr '\n' ',' | sed 's/,$//')
