@@ -9,4 +9,4 @@ spec:
     requests:
       storage: 1Gi
     limits:
-      storage: 2Gi
+      storage: 4Gi
